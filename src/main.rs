@@ -1,44 +1,73 @@
-use std::collections::HashMap;
+use std::time::Instant;
+
+mod common;
+mod solutions;
 
 fn main() {
-    let input = std::fs::read_to_string("inputs/day1.txt").unwrap();
-    let mut input1_base = vec![];
-    let mut input2_base = vec![];
-
-    for line in input.lines() {
-        let numbers = line
-            .split("   ")
-            .map(|str| str.parse::<i32>().unwrap())
-            .collect::<Vec<i32>>();
-        input1_base.push(*numbers.first().unwrap());
-        input2_base.push(*numbers.get(1).unwrap());
+    if let Err(e) = dotenvy::dotenv() {
+        eprintln!("Could not load .env: {e}");
     }
 
-    // part1
-    let mut input1 = input1_base.clone();
-    let mut input2 = input2_base.clone();
+    let args = std::env::args().collect::<Vec<_>>();
 
-    input1.sort();
-    input2.sort();
+    let day = args
+        .get(1)
+        .and_then(|n| n.parse::<u8>().ok())
+        .expect("day is not a number");
 
-    let dist: i32 = input1
-        .iter()
-        .zip(input2.iter())
-        .map(|(a, b)| (a - b).abs())
-        .sum();
+    let part = args
+        .get(2)
+        .and_then(|n| n.chars().next())
+        .expect("part is not a letter");
 
-    println!("Day1 part A: {}", dist);
+    let Some(solution) = solutions::SOLUTIONS.get((day - 1) as usize) else {
+        eprintln!("[-] Day {} not implemented", day);
+        return;
+    };
 
-    //part b
-    let input1 = input1_base.clone();
-    let input2 = input2_base.clone();
+    let input = load(day).unwrap();
 
-    let mut map = HashMap::new();
-    for x in input2 {
-        map.insert(x, *map.get(&x).unwrap_or(&0) + 1);
+    println!(
+        "[*] Running: {} ({}-{})",
+        solution.name(),
+        day,
+        part.to_uppercase()
+    );
+
+    let start = Instant::now();
+    let out = match part.to_ascii_lowercase() {
+        'a' => solution.part_a(&input),
+        'b' => solution.part_b(&input),
+        _ => return eprintln!("[-] Invalid Part {}", part),
+    };
+
+    let time = start.elapsed().as_nanos();
+    println!("[*] Out: {} (took {})", out, format_time(time));
+}
+
+fn load(day: u8) -> Result<String, Box<dyn std::error::Error>> {
+    let token = std::env::var("TOKEN").expect("TOKEN is not set");
+
+    Ok(
+        ureq::get(format!("https://adventofcode.com/2024/day/{day}/input").as_str())
+            .set("Cookie", format!("session={token}").as_str())
+            .call()?
+            .into_string()?
+            .trim()
+            .replace('\r', ""),
+    )
+}
+
+fn format_time(nanos: u128) -> String {
+    const TIME_UNITS: &[&str] = &["ns", "μs", "ms", "s"];
+
+    let mut time = nanos;
+    for i in TIME_UNITS {
+        if time < 1000 {
+            return format!("{}{}", time, i);
+        }
+        time /= 1000;
     }
 
-    let answer: i32 = input1.iter().map(|x| map.get(x).unwrap_or(&0) * x).sum();
-    
-    println!("Day1 part B: {}", answer);
+    format!("{}{}", time, TIME_UNITS.last().unwrap())
 }
