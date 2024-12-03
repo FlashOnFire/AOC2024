@@ -60,7 +60,7 @@ mod test {
 
     use indoc::indoc;
 
-    const INPUT_A: &str = indoc! {"
+    const INPUT: &str = indoc! {"
         7 6 4 2 1
         1 2 7 8 9
         9 7 6 2 1
@@ -69,17 +69,13 @@ mod test {
         1 3 6 7 9
     "};
 
-    const INPUT_B: &str = indoc! {"
-
-    "};
-
     #[test]
     fn part_a() {
-        assert_eq!(Day02.part_a(INPUT_A), crate::common::Answer::Unimplemented);
+        assert_eq!(Day02.part_a(INPUT), crate::common::Answer::Number(2));
     }
 
     #[test]
     fn part_b() {
-        assert_eq!(Day02.part_b(INPUT_B), crate::common::Answer::Unimplemented);
+        assert_eq!(Day02.part_b(INPUT), crate::common::Answer::Number(4));
     }
 }
