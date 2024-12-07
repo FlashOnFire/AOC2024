@@ -141,7 +141,7 @@ impl Solution for Day06 {
             .iter()
             .unique_by(hash)
             .par_bridge()
-            .map(|pos| {
+            .filter(|pos| {
                 let mut guard = default_guard;
                 let mut facing = Facing::Up;
 
@@ -156,36 +156,36 @@ impl Solution for Day06 {
                     if !match &facing {
                         Facing::Up => {
                             if guard.1 < 0 {
-                                return 0;
+                                return false;
                             }
                             path.0.insert(guard)
                         }
                         Facing::Down => {
                             if guard.1 >= size_y {
-                                return 0;
+                                return false;
                             }
                             path.1.insert(guard)
                         }
                         Facing::Left => {
                             if guard.0 < 0 {
-                                return 0;
+                                return false;
                             }
                             path.2.insert(guard)
                         }
                         Facing::Right => {
                             if guard.0 >= size_x {
-                                return 0;
+                                return false;
                             }
                             path.3.insert(guard)
                         }
                     } {
-                        return 1;
+                        return true;
                     }
 
-                    advance2(&obstacles, &mut guard, &mut facing, Some(*pos));
+                    advance2(&obstacles, &mut guard, &mut facing, Some(**pos));
                 }
             })
-            .sum::<i32>()
+            .count()
             .into()
     }
 }
