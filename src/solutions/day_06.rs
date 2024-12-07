@@ -2,7 +2,7 @@ use crate::common::{Answer, Solution};
 use fxhash::FxHashSet;
 use itertools::Itertools;
 use rayon::iter::ParallelIterator;
-use rayon::prelude::{IntoParallelRefIterator, ParallelBridge};
+use rayon::prelude::ParallelBridge;
 
 pub struct Day06;
 
@@ -105,8 +105,6 @@ impl Solution for Day06 {
     }
 
     fn part_b(&self, input: &str) -> Answer {
-        let base_path = compute_path(input);
-
         let mut obstacles: FxHashSet<(i32, i32)> = FxHashSet::default();
         let mut default_guard: (i32, i32) = (-1, -1);
 
@@ -123,6 +121,14 @@ impl Solution for Day06 {
 
         let size_y = input.lines().count() as i32;
         let size_x = input.lines().nth(0).unwrap().len() as i32;
+
+        let mut base_path = vec![];
+        let mut guard = default_guard;
+        let mut facing = Facing::UP;
+        while guard.0 >= 0 && guard.1 >= 0 && guard.0 < size_x && guard.1 < size_y {
+            base_path.push(guard);
+            advance2(&obstacles, &mut guard, &mut facing, None);
+        }
 
         base_path
             .iter()
