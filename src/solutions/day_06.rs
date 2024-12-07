@@ -8,19 +8,19 @@ pub struct Day06;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 enum Facing {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
+    Up,
+    Down,
+    Left,
+    Right,
 }
 
 impl Facing {
     fn turn_90_degrees(&mut self) {
         *self = match self {
-            Facing::UP => Facing::RIGHT,
-            Facing::RIGHT => Facing::DOWN,
-            Facing::DOWN => Facing::LEFT,
-            Facing::LEFT => Facing::UP,
+            Facing::Up => Facing::Right,
+            Facing::Right => Facing::Down,
+            Facing::Down => Facing::Left,
+            Facing::Left => Facing::Up,
         }
     }
 }
@@ -32,10 +32,10 @@ fn advance(
     bonus_obstacle: Option<(i32, i32)>,
 ) {
     let new_position = match &facing {
-        Facing::UP => (guard.0, guard.1 - 1),
-        Facing::DOWN => (guard.0, guard.1 + 1),
-        Facing::LEFT => (guard.0 - 1, guard.1),
-        Facing::RIGHT => (guard.0 + 1, guard.1),
+        Facing::Up => (guard.0, guard.1 - 1),
+        Facing::Down => (guard.0, guard.1 + 1),
+        Facing::Left => (guard.0 - 1, guard.1),
+        Facing::Right => (guard.0 + 1, guard.1),
     };
 
     if obstacles.contains(&new_position) || (bonus_obstacle == Some(new_position)) {
@@ -53,10 +53,10 @@ fn advance2(
     bonus_obstacle: Option<(i32, i32)>,
 ) {
     let new_position = match &facing {
-        Facing::UP => (guard.0, guard.1 - 1),
-        Facing::DOWN => (guard.0, guard.1 + 1),
-        Facing::LEFT => (guard.0 - 1, guard.1),
-        Facing::RIGHT => (guard.0 + 1, guard.1),
+        Facing::Up => (guard.0, guard.1 - 1),
+        Facing::Down => (guard.0, guard.1 + 1),
+        Facing::Left => (guard.0 - 1, guard.1),
+        Facing::Right => (guard.0 + 1, guard.1),
     };
 
     if obstacles.contains(&new_position) || (bonus_obstacle == Some(new_position)) {
@@ -70,7 +70,7 @@ fn advance2(
 fn compute_path(input: &str) -> Vec<(i32, i32)> {
     let mut obstacles = vec![];
     let mut guard: (i32, i32) = (-1, -1);
-    let mut facing = Facing::UP;
+    let mut facing = Facing::Up;
 
     for (y, line) in input.lines().enumerate() {
         for (x, char) in line.chars().enumerate() {
@@ -124,7 +124,7 @@ impl Solution for Day06 {
 
         let mut base_path = vec![];
         let mut guard = default_guard;
-        let mut facing = Facing::UP;
+        let mut facing = Facing::Up;
         while guard.0 >= 0 && guard.1 >= 0 && guard.0 < size_x && guard.1 < size_y {
             base_path.push(guard);
             advance2(&obstacles, &mut guard, &mut facing, None);
@@ -137,7 +137,7 @@ impl Solution for Day06 {
             .filter(|pos| !obstacles.contains(pos) && **pos != default_guard)
             .map(|pos| {
                 let mut guard = default_guard;
-                let mut facing = Facing::UP;
+                let mut facing = Facing::Up;
 
                 let mut path = (
                     FxHashSet::default(),
@@ -148,10 +148,10 @@ impl Solution for Day06 {
 
                 while guard.0 >= 0 && guard.1 >= 0 && guard.0 < size_x && guard.1 < size_y {
                     if !match &facing {
-                        Facing::UP => path.0.insert(guard),
-                        Facing::DOWN => path.1.insert(guard),
-                        Facing::LEFT => path.2.insert(guard),
-                        Facing::RIGHT => path.3.insert(guard),
+                        Facing::Up => path.0.insert(guard),
+                        Facing::Down => path.1.insert(guard),
+                        Facing::Left => path.2.insert(guard),
+                        Facing::Right => path.3.insert(guard),
                     } {
                         return 1;
                     }
