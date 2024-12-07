@@ -1,8 +1,8 @@
 use crate::common::{Answer, Solution};
 use itertools::Itertools;
 use rayon::iter::ParallelIterator;
-use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelBridge};
-use std::collections::HashSet;
+use rayon::prelude::ParallelBridge;
+use fxhash::FxHashSet;
 
 pub struct Day06;
 
@@ -47,7 +47,7 @@ fn advance(
 }
 
 fn advance2(
-    obstacles: &HashSet<(i32, i32)>,
+    obstacles: &FxHashSet<(i32, i32)>,
     guard: &mut (i32, i32),
     facing: &mut Facing,
     bonus_obstacle: Option<(i32, i32)>,
@@ -117,7 +117,7 @@ impl Solution for Day06 {
     }
 
     fn part_b(&self, input: &str) -> Answer {
-        let mut obstacles: HashSet<(i32, i32)> = HashSet::new();
+        let mut obstacles: FxHashSet<(i32, i32)> = FxHashSet::default();
         let mut default_guard: (i32, i32) = (-1, -1);
 
         for (y, line) in input.lines().enumerate() {
@@ -143,19 +143,19 @@ impl Solution for Day06 {
                 let mut facing = Facing::UP;
 
                 let mut path = (
-                    HashSet::new(),
-                    HashSet::new(),
-                    HashSet::new(),
-                    HashSet::new(),
+                    FxHashSet::default(),
+                    FxHashSet::default(),
+                    FxHashSet::default(),
+                    FxHashSet::default(),
                 );
 
                 while guard.0 >= 0 && guard.1 >= 0 && guard.0 < size_x && guard.1 < size_y {
-                    if (!match (&facing) {
+                    if !match &facing {
                         Facing::UP => path.0.insert(guard),
                         Facing::DOWN => path.1.insert(guard),
                         Facing::LEFT => path.2.insert(guard),
                         Facing::RIGHT => path.3.insert(guard),
-                    }) {
+                    } {
                         return 1;
                     }
 
