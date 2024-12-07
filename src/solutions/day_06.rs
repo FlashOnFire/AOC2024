@@ -1,8 +1,8 @@
 use crate::common::{Answer, Solution};
+use fxhash::FxHashSet;
 use itertools::Itertools;
 use rayon::iter::ParallelIterator;
-use rayon::prelude::ParallelBridge;
-use fxhash::FxHashSet;
+use rayon::prelude::{IntoParallelRefIterator, ParallelBridge};
 
 pub struct Day06;
 
@@ -67,56 +67,46 @@ fn advance2(
     }
 }
 
+fn compute_path(input: &str) -> Vec<(i32, i32)> {
+    let mut obstacles = vec![];
+    let mut guard: (i32, i32) = (-1, -1);
+    let mut facing = Facing::UP;
+
+    for (y, line) in input.lines().enumerate() {
+        for (x, char) in line.chars().enumerate() {
+            if char == '#' {
+                obstacles.push((x as i32, y as i32));
+            } else if char == '^' {
+                guard = (x as i32, y as i32);
+            }
+        }
+    }
+    assert_ne!(guard, (-1, -1));
+
+    let size_y = input.lines().count();
+    let size_x = input.lines().nth(0).unwrap().len();
+    let mut path = vec![];
+
+    while guard.0 >= 0 && guard.1 >= 0 && guard.0 < size_x as i32 && guard.1 < size_y as i32 {
+        path.push(guard);
+        advance(&obstacles, &mut guard, &mut facing, None);
+    }
+
+    path
+}
+
 impl Solution for Day06 {
     fn name(&self) -> &'static str {
         "Guard Gallivant"
     }
 
     fn part_a(&self, input: &str) -> Answer {
-        let mut obstacles = vec![];
-        let mut guard: (i32, i32) = (-1, -1);
-        let mut facing = Facing::UP;
-
-        for (y, line) in input.lines().enumerate() {
-            for (x, char) in line.chars().enumerate() {
-                if char == '#' {
-                    obstacles.push((x as i32, y as i32));
-                } else if char == '^' {
-                    guard = (x as i32, y as i32);
-                }
-            }
-        }
-        assert_ne!(guard, (-1, -1));
-
-        let size_y = input.lines().count();
-        let size_x = input.lines().nth(0).unwrap().len();
-        let mut path = vec![];
-
-        while guard.0 >= 0 && guard.1 >= 0 && guard.0 < size_x as i32 && guard.1 < size_y as i32 {
-            path.push(guard);
-            advance(&obstacles, &mut guard, &mut facing, None);
-        }
-
-        for y in 0..size_y {
-            for x in 0..size_x {
-                let pos = (x as i32, y as i32);
-                if obstacles.contains(&pos) {
-                    print!("#");
-                } else if path.contains(&pos) {
-                    print!("X");
-                } else if guard == pos {
-                    print!("O");
-                } else {
-                    print!(".")
-                }
-            }
-            println!();
-        }
-
-        path.iter().unique().count().into()
+        compute_path(input).iter().unique().count().into()
     }
 
     fn part_b(&self, input: &str) -> Answer {
+        let base_path = compute_path(input);
+
         let mut obstacles: FxHashSet<(i32, i32)> = FxHashSet::default();
         let mut default_guard: (i32, i32) = (-1, -1);
 
@@ -134,10 +124,11 @@ impl Solution for Day06 {
         let size_y = input.lines().count() as i32;
         let size_x = input.lines().nth(0).unwrap().len() as i32;
 
-        (0..size_x)
-            .cartesian_product(0..size_y)
+        base_path
+            .iter()
+            .unique()
             .par_bridge()
-            .filter(|pos| !obstacles.contains(pos) && *pos != default_guard)
+            .filter(|pos| !obstacles.contains(pos) && **pos != default_guard)
             .map(|pos| {
                 let mut guard = default_guard;
                 let mut facing = Facing::UP;
@@ -159,7 +150,7 @@ impl Solution for Day06 {
                         return 1;
                     }
 
-                    advance2(&obstacles, &mut guard, &mut facing, Some(pos));
+                    advance2(&obstacles, &mut guard, &mut facing, Some(*pos));
                 }
 
                 0
